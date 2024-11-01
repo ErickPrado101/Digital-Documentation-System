@@ -10,22 +10,30 @@ interface Documento {
   dataCriacao: string
 }
 
+interface DocumentosResponse {
+  documentos: Documento[]
+  currentPage: number
+  totalPages: number
+  totalDocuments: number
+}
+
 export default function ConsultarDocumentos() {
-  const [documentos, setDocumentos] = useState<Documento[]>([])
+  const [documentosData, setDocumentosData] = useState<DocumentosResponse | null>(null)
   const [filtroStatus, setFiltroStatus] = useState('')
   const [filtroDataInicio, setFiltroDataInicio] = useState('')
   const [filtroDataFim, setFiltroDataFim] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
 
   useEffect(() => {
     fetchDocumentos()
-  }, [])
+  }, [currentPage])
 
   const fetchDocumentos = async () => {
     try {
-      const response = await fetch('/api/documentos')
+      const response = await fetch(`/api/documentos?page=${currentPage}&limit=10`)
       if (response.ok) {
-        const data = await response.json()
-        setDocumentos(data)
+        const data: DocumentosResponse = await response.json()
+        setDocumentosData(data)
       } else {
         console.error('Erro ao buscar documentos')
       }
@@ -35,7 +43,8 @@ export default function ConsultarDocumentos() {
   }
 
   const filtrarDocumentos = () => {
-    return documentos.filter((doc) => {
+    if (!documentosData) return []
+    return documentosData.documentos.filter((doc) => {
       const statusMatch = filtroStatus === '' || doc.status === filtroStatus
       const dataMatch =
         (!filtroDataInicio || new Date(doc.dataCriacao) >= new Date(filtroDataInicio)) &&
@@ -78,7 +87,7 @@ export default function ConsultarDocumentos() {
                 id="filtroStatus"
                 value={filtroStatus}
                 onChange={(e) => setFiltroStatus(e.target.value)}
-                className="w-full px-3  py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Todos</option>
                 <option value="andamento">Em andamento</option>
@@ -149,6 +158,32 @@ export default function ConsultarDocumentos() {
             </tbody>
           </table>
         </div>
+        {documentosData && (
+          <div className="mt-4 flex justify-between items-center">
+            <div>
+              <p className="text-sm text-gray-700">
+                Mostrando {(currentPage - 1) * 10 + 1} a {Math.min(currentPage * 10, documentosData.totalDocuments)} de{' '}
+                {documentosData.totalDocuments} documentos
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1 border border-gray-300 rounded-md disabled:opacity-50"
+              >
+                Anterior
+              </button>
+              <button
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, documentosData.totalPages))}
+                disabled={currentPage === documentosData.totalPages}
+                className="px-3 py-1 border border-gray-300 rounded-md disabled:opacity-50"
+              >
+                Próxima
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

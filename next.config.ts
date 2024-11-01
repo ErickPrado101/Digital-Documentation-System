@@ -1,7 +1,17 @@
-import type { NextConfig } from "next";
+import { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  experimental: {
+    serverComponentsExternalPackages: ['pdf-lib'],
+  },
+  webpack: (config) => {
+    config.externals = config.externals || [];
+    config.externals.push({
+      sharp: 'commonjs sharp',
+      canvas: 'commonjs canvas',
+    });
+    return config;
+  },
 };
 
 export default nextConfig;
