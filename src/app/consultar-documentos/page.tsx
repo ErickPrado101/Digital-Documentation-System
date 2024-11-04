@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
+import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { Dialog, Transition } from '@headlessui/react'
+import { Fragment } from 'react'
 
 interface Documento {
   id: string
@@ -23,6 +25,8 @@ export default function ConsultarDocumentos() {
   const [filtroDataInicio, setFiltroDataInicio] = useState('')
   const [filtroDataFim, setFiltroDataFim] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
+  const [selectedDocument, setSelectedDocument] = useState<string | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
     fetchDocumentos()
@@ -73,10 +77,15 @@ export default function ConsultarDocumentos() {
     }
   }
 
+  const openDocument = (id: string) => {
+    setSelectedDocument(id)
+    setIsModalOpen(true)
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 py-8">
       <div className="container mx-auto px-4">
-        <h1 className="text-3xl font-bold mb-8">Consultar Documentos</h1>
+        <h1 className="text-3xl font-bold mb-8">Consultar documentos</h1>
         <div className="bg-white p-6 rounded-lg shadow-md mb-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div>
@@ -92,11 +101,12 @@ export default function ConsultarDocumentos() {
                 <option value="">Todos</option>
                 <option value="andamento">Em andamento</option>
                 <option value="arquivado">Arquivado</option>
+                <option value="assinado">Assinado</option>
               </select>
             </div>
             <div>
               <label htmlFor="filtroDataInicio" className="block text-sm font-medium text-gray-700 mb-2">
-                Data Início
+                Data inicial
               </label>
               <input
                 type="date"
@@ -108,7 +118,7 @@ export default function ConsultarDocumentos() {
             </div>
             <div>
               <label htmlFor="filtroDataFim" className="block text-sm font-medium text-gray-700 mb-2">
-                Data Fim
+                Data final
               </label>
               <input
                 type="date"
@@ -140,7 +150,14 @@ export default function ConsultarDocumentos() {
             <tbody className="bg-white divide-y divide-gray-200">
               {filtrarDocumentos().map((doc) => (
                 <tr key={doc.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">{doc.nome}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <button
+                      onClick={() => openDocument(doc.id)}
+                      className="text-blue-600 hover:text-blue-800 hover:underline"
+                    >
+                      {doc.nome}
+                    </button>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">{doc.status}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{new Date(doc.dataCriacao).toLocaleDateString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -151,6 +168,7 @@ export default function ConsultarDocumentos() {
                     >
                       <option value="andamento">Em andamento</option>
                       <option value="arquivado">Arquivado</option>
+                      <option value="assinado">Assinado</option>
                     </select>
                   </td>
                 </tr>
@@ -185,6 +203,60 @@ export default function ConsultarDocumentos() {
           </div>
         )}
       </div>
+
+      <Transition appear show={isModalOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-10" onClose={() => setIsModalOpen(false)}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-25" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                  <Dialog.Title
+                    as="h3"
+                    className="text-lg font-medium leading-6 text-gray-900 flex justify-between items-center"
+                  >
+                    Visualizar Documento
+                    <button
+                      onClick={() => setIsModalOpen(false)}
+                      className="text-gray-400 hover:text-gray-500 focus:outline-none"
+                    >
+                      <XMarkIcon className="h-6 w-6" />
+                    </button>
+                  </Dialog.Title>
+                  <div className="mt-2">
+                    {selectedDocument && (
+                      <iframe
+                        src={`/api/documentos/${selectedDocument}?view=true`}
+                        className="w-full h-[80vh]"
+                        title="Visualização do documento"
+                      />
+                    )}
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
     </div>
   )
 }

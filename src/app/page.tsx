@@ -5,7 +5,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-100">
       <main className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold text-center mb-8">Gerenciamento de Documentos Digitais</h1>
+        <h1 className="text-4xl font-bold text-center mb-8">Solução Digital para documentos</h1>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Link href="/criar-documento" className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
             <DocumentIcon className="h-12 w-12 text-blue-500 mb-4" />
