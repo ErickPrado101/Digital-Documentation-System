@@ -3,11 +3,12 @@ import { readFile } from 'fs/promises'
 import path from 'path'
 import { ensureStorageExists, storagePath } from '../../../../../utils/storage'
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest) {
   await ensureStorageExists()
 
-  const { id } = params
-  const { searchParams } = new URL(req.url)
+  // Extrair o ID do parâmetro da URL
+  const id = req.nextUrl.pathname.split('/').pop() || ''
+  const { searchParams } = req.nextUrl
   const view = searchParams.get('view') === 'true'
 
   const filePath = path.join(storagePath, id)
