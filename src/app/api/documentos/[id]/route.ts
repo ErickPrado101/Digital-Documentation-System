@@ -6,8 +6,8 @@ import { ensureStorageExists, storagePath } from '../../../../../utils/storage'
 export async function GET(req: NextRequest) {
   await ensureStorageExists()
 
-  // Extrair o ID do parâmetro da URL
-  const id = req.nextUrl.pathname.split('/').pop() || ''
+  // Decodificar o ID para lidar com espaços e caracteres especiais
+  const id = decodeURIComponent(req.nextUrl.pathname.split('/').pop() || '')
   const { searchParams } = req.nextUrl
   const view = searchParams.get('view') === 'true'
 
@@ -15,7 +15,6 @@ export async function GET(req: NextRequest) {
 
   try {
     const fileBuffer = await readFile(filePath)
-
     return new NextResponse(fileBuffer, {
       headers: {
         'Content-Type': 'application/pdf',
